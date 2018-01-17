@@ -1,0 +1,21 @@
+﻿.coach-marks- {
+    &background {
+        position: absolute;
+        background-color: #121212;
+        opacity: 0.4;
+    }
+
+    &buttons {
+        position: absolute;
+        top: calc("View.Root.Height, view.Height, (r, b) => r - b");
+
+        .skip {
+            background-color: white;
+            color: black;
+        }
+
+        .next {
+            color: white;
+        }
+    }
+}
