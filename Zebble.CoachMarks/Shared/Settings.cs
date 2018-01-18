@@ -16,6 +16,8 @@ namespace Zebble
 
             public TimeSpan Delay { get; set; } = new TimeSpan(0, 0, 3);
 
+            public int ElementPadding { get; set; } = 5;
+
             public bool DisableRealEvents { get; set; } = false;
 
             public IEnumerable<Step> Steps => stepsList.ToArray();

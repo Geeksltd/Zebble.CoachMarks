@@ -9,7 +9,7 @@
     },
     {
       "Analyzer": "LongMethodAnalyzer",
-      "OccurrenceCount": 5,
+      "OccurrenceCount": 6,
       "Exceptions": null,
       "SentToServer": true,
       "InstallationName": "HAMIDM"
@@ -30,6 +30,13 @@
     },
     {
       "Analyzer": "ImmutableMethodsAnalyzer",
+      "OccurrenceCount": 1,
+      "Exceptions": null,
+      "SentToServer": true,
+      "InstallationName": "HAMIDM"
+    },
+    {
+      "Analyzer": "AsyncAwaitMethodAnalyzer",
       "OccurrenceCount": 1,
       "Exceptions": null,
       "SentToServer": true,

@@ -7,162 +7,24 @@ using System.Threading.Tasks;
 
 namespace Zebble
 {
-    //public partial class CoachMarks2
-    //{
-
-    //    BackgroundControl Background;
-    //    View MarksRoot;
-    //    TaskCompletionSource<bool> OnPopOverClosed;
-    //    TaskCompletionSource<bool> OnNextTapped;
-    //    TaskCompletionSource<bool> OnSkipTapped;
-    //    bool SkipTapped;
-        
-    //    public bool IsCoaching => Background != null;
-
-    //    public Task Coach(Settings settings) => Coach(settings, CancellationToken.None);
-
-    //    public async Task Coach(Settings settings, CancellationToken cancellationToken)
-    //    {
-    //        if (IsCoaching)
-    //            throw new InvalidOperationException("Coaching is under process.");
-
-    //        MarksRoot = settings.MarksRoot ?? View.Root;
-    //        SkipTapped = false;
-
-    //        int? zIndex = null;
-    //        View currentStepElement = null;
-    //        PopOver currentStepUserHelp = null;
-
-    //        try
-    //        {
-    //            // Create and show background which contains the next and skip button
-    //            await ShowBackround(cancellationToken);
-
-    //            foreach (var step in settings.Steps)
-    //            {
-    //                if (ShouldItTerminate(cancellationToken)) return;
-
-    //                // Show the step by showing it text and element.
-    //                var temp = await ShowStep(step);
-
-    //                currentStepElement = temp.Item1;
-    //                currentStepUserHelp = temp.Item2;
-    //                zIndex = temp.Item3;
-
-    //                if (ShouldItTerminate(cancellationToken)) return;
-
-    //                // Wait for next, skip or time delay (If applicable) to continue.
-    //                if (settings.MoveOnByTime)
-    //                    await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task, Task.Delay(settings.Delay));
-    //                else
-    //                    await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task);
-
-    //                if (ShouldItTerminate(cancellationToken)) return;
-
-    //                // Hide the step by showing it text and element.
-    //                await HideStep(currentStepElement, currentStepUserHelp, zIndex);
-    //            }
-    //        }
-    //        finally
-    //        {
-    //            await RemoveBackground();
-    //            if (zIndex.HasValue)
-    //            {
-    //                currentStepElement.ZIndex(zIndex.Value);
-    //                await currentStepUserHelp?.Hide();
-    //            }
-    //        }
-    //    }
-
-    //    bool ShouldItTerminate(CancellationToken cancellationToken)
-    //    {
-    //        return cancellationToken.IsCancellationRequested || SkipTapped;
-    //    }
-
-    //    async Task HideStep(View currentStepElement, PopOver currentStepUserHelp, int? defaultZIndex)
-    //    {
-    //        if (defaultZIndex.HasValue)
-    //            currentStepElement.ZIndex(defaultZIndex.Value);
-
-    //        await currentStepUserHelp?.Hide();
-    //    }
-
-    //    async Task<Tuple<View, PopOver, int>> ShowStep(Step step)
-    //    {
-    //        var element = MarksRoot.AllDescendents().FirstOrDefault(v => v.Id == step.ElementId);
-            
-    //        var zIndex = element.ZIndex;
-            
-    //        await element.BringToFront();
-            
-    //        OnPopOverClosed = new TaskCompletionSource<bool>();
-    //        OnNextTapped = new TaskCompletionSource<bool>();
-    //        OnSkipTapped = new TaskCompletionSource<bool>();
-
-    //        var helpOverlay = await element.ShowPopOver(step.Text);
-
-    //        helpOverlay.On(x => x.OnHide, () =>
-    //        {
-    //            if (!OnPopOverClosed.Task.IsCompleted)
-    //                OnPopOverClosed.SetResult(result: true);
-    //        });
-
-    //        await helpOverlay.BringToFront();
-
-    //        return Tuple.Create(element, helpOverlay, zIndex);
-    //    }
-
-    //    async Task RemoveBackground()
-    //    {
-    //        await Background.RemoveSelf();
-    //        Background = null;
-    //    }
-
-    //    async Task ShowBackround(CancellationToken cancellationToken)
-    //    {
-    //        if (cancellationToken.IsCancellationRequested) return;
-
-    //        Background = new BackgroundControl(MarksRoot);
-            
-    //        Background.Y(0);
-    //        Background.X(0);
-    //        Background.Height.BindTo(MarksRoot.Height);
-    //        Background.Width.BindTo(MarksRoot.Width);
-
-    //        Background.On(x => x.RightButtonTapped, () => OnNextTapped?.SetResult(result: true))
-    //            .On(x => x.LeftButtonTapped, () =>
-    //            {
-    //                SkipTapped = true;
-    //                OnSkipTapped?.SetResult(result: true);
-    //            });
-
-    //        await MarksRoot.Add(Background);
-    //        await Background.BringToFront();
-    //    }
-    //}
-
     public partial class CoachMarks
     {
-        const string BACKGROUND_CSS_CLASS = "coach-marks-background";
-
-        bool SkipTapped;
-        Settings CurrentSettings;
-        CancellationToken CancellationToken;
-
+        Settings Setting;
+        BackgroundControl Background;
+        
         TaskCompletionSource<bool> OnPopOverClosed;
         TaskCompletionSource<bool> OnNextTapped;
         TaskCompletionSource<bool> OnSkipTapped;
 
-        PopOver PopOver;
-        int? ElementZIndex;
+        CancellationToken CancellationToken;
+        bool SkipTapped;
+
         View Element;
+        View ElementParent;
+        View ElementHolder;
+        PopOver PopOver;
 
-        Stack ButtonsContainer;
-        Canvas TopBackground;
-        Canvas MiddleBackground;
-        Canvas BottomBackground;
-
-        public bool IsCoaching { get; private set; }
+        public bool IsCoaching => Background != null;
 
         public Task Coach(Settings settings) => Coach(settings, CancellationToken.None);
 
@@ -171,14 +33,14 @@ namespace Zebble
             if (IsCoaching)
                 throw new InvalidOperationException("Coaching is under process.");
 
-            IsCoaching = true;
-            SkipTapped = false;
-            CurrentSettings = settings;
             CancellationToken = cancellationToken;
-
+            Setting = settings;
+            SkipTapped = false;
+            
             try
             {
-                await Initialize();
+                // Create and show background which contains the next and skip button
+                await ShowBackround(cancellationToken);
 
                 foreach (var step in settings.Steps)
                 {
@@ -186,14 +48,14 @@ namespace Zebble
 
                     // Show the step by showing it text and element.
                     await ShowStep(step);
-                    
+
                     if (ShouldItTerminate()) return;
 
                     // Wait for next, skip or time delay (If applicable) to continue.
                     if (settings.MoveOnByTime)
-                        await Task.WhenAny(OnNextTapped?.Task, OnSkipTapped?.Task, OnPopOverClosed?.Task, Task.Delay(settings.Delay));
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task, Task.Delay(settings.Delay));
                     else
-                        await Task.WhenAny(OnNextTapped?.Task, OnSkipTapped?.Task, OnPopOverClosed?.Task);
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task);
 
                     if (ShouldItTerminate()) return;
 
@@ -203,99 +65,135 @@ namespace Zebble
             }
             finally
             {
-                IsCoaching = false;
-                await Clear();
+                await RemoveBackground();
+
+                await HideStep();
+                await ElementHolder.RemoveSelf();
             }
         }
 
-        async Task Initialize()
+        bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
+
+        async Task HideStep()
         {
-            ButtonsContainer = new Stack { CssClass = "coach-marks-buttons", Direction = RepeatDirection.Horizontal };
-            TopBackground = new Canvas { CssClass = BACKGROUND_CSS_CLASS };
-            BottomBackground = new Canvas { CssClass = BACKGROUND_CSS_CLASS };
-
-            await View.Root.Add(TopBackground.Y(0));
-            await View.Root.Add(BottomBackground);
-            await View.Root.Add(ButtonsContainer);
-
-            if (CurrentSettings.CanSkip)
-                await ButtonsContainer.Add(new Button { Text = "Skip", CssClass = "skip" }
-                .On(b => b.Tapped, () =>
-                {
-                    OnSkipTapped?.TrySetResult(result: true);
-                    SkipTapped = true;
-                }));
+            await ChangeParent(Element, ElementParent, Element.ActualY, Element.ActualX);
             
-            await ButtonsContainer.Add(new Button { Text = "Next", CssClass = "next" }
-                .On(b => b.Tapped, () => OnNextTapped?.TrySetResult(result: true)));
-        }
-
-        Task HideStep()
-        {
-            if(ElementZIndex.HasValue)
-                Element.ZIndex(ElementZIndex.Value);
-            ElementZIndex = null;
-
-            return PopOver.Hide();
+            await PopOver.Hide();
         }
 
         async Task ShowStep(Step step)
         {
-            Element = View.Root.AllDescendents().FirstOrDefault(v => v.Id == step.ElementId);
-            var parent = Element.Parent ?? throw new InvalidOperationException($"It is not possible to add a step for '{step.ElementId}'.");
-            ElementZIndex = Element.ZIndex;
+            Element = step.Element;
 
-            // Rearrange backgrounds
-            var parentAbsY = parent.CalculateAbsoluteY();
-            var parentHeight = parent.Height.CurrentValue;
+            ElementParent = Element.Parent ?? throw new InvalidOperationException();
 
-            if (MiddleBackground != null)
-                await MiddleBackground.RemoveSelf();
+            await Task.WhenAll(
+                Fade(),
+                Move(),
+                ChangeParent(Element, ElementHolder, Setting.ElementPadding, Setting.ElementPadding),
+                ShowUp());
 
-            MiddleBackground = new Canvas { CssClass = BACKGROUND_CSS_CLASS };
-
-            MiddleBackground.Y(0);
-            MiddleBackground.Height(parentHeight);
-
-            TopBackground.Height(parentAbsY);
-
-            BottomBackground.Y(parentAbsY + parentHeight);
-            BottomBackground.Height(View.Root.Height.CurrentValue - parentAbsY - parentHeight);
-
-            await parent.Add(MiddleBackground);
-
-            // Refresh event handlers
             OnPopOverClosed = new TaskCompletionSource<bool>();
             OnNextTapped = new TaskCompletionSource<bool>();
             OnSkipTapped = new TaskCompletionSource<bool>();
 
-            PopOver = (await Element.ShowPopOver(step.Text))
-                .On(x => x.OnHide, () =>
-                {
-                    if (!OnPopOverClosed.Task.IsCompleted)
-                        OnPopOverClosed.SetResult(result: true);
-                });
+            PopOver = (await Element.ShowPopOver(step.Text)).On(x => x.OnHide, () =>
+            {
+                if (!OnPopOverClosed.Task.IsCompleted)
+                    OnPopOverClosed.SetResult(result: true);
+            });
 
-            // Reset Z indexes
-            await TopBackground.BringToFront();
-            await MiddleBackground.BringToFront();
-            await BottomBackground.BringToFront();
-            await ButtonsContainer.BringToFront();
             await PopOver.BringToFront();
         }
 
-        async Task Clear()
+        async Task ShowUp()
         {
-            await HideStep();
-            
-            await ButtonsContainer.RemoveSelf();
-            await TopBackground.RemoveSelf();
-            await MiddleBackground.RemoveSelf();
-            await BottomBackground.RemoveSelf();
+            await Task.Delay(Animation.FadeDuration);
+
+            await ElementHolder.Animate(new Animation
+            {
+                Easing = AnimationEasing.EaseOut,
+                EasingFactor = EasingFactor.Cubic,
+                Change = () =>
+                {
+                    ElementHolder.Opacity = 1;
+                },
+                Duration = HalfDuration
+            });
         }
 
-        Task WhenAny(params Task[] tasks) => Task.WhenAny(tasks.Except(t => t == null).ToArray());
+        TimeSpan HalfDuration => ((int)(Animation.FadeDuration.TotalMilliseconds / 2)).Milliseconds();
 
-        bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
+        async Task Move() {
+            await Task.Delay(HalfDuration);
+
+            await ElementHolder.Animate(new Animation
+            {
+                Easing = AnimationEasing.EaseIn,
+                EasingFactor = EasingFactor.Cubic,
+                Change = () => {
+                    ElementHolder.Opacity = 0.25f;
+                    ElementHolder.X(Element.CalculateAbsoluteX() - Setting.ElementPadding);
+                    ElementHolder.Y(Element.CalculateAbsoluteY() - Setting.ElementPadding);
+
+                    ElementHolder.Height(Element.ActualHeight + Setting.ElementPadding * 2);
+                    ElementHolder.Width(Element.ActualWidth + Setting.ElementPadding * 2);
+
+                    ElementHolder.BorderRadius(
+                        topLeft: Element.Border.RadiusTopLeft + Setting.ElementPadding,
+                        topRight: Element.Border.RadiusTopRight + Setting.ElementPadding,
+                        bottomLeft: Element.Border.RadiusBottomLeft + Setting.ElementPadding,
+                        bottomRight: Element.Border.RadiusBottomRight + Setting.ElementPadding
+                        );
+                },
+                Duration = HalfDuration
+            });
+        }
+        async Task Fade()
+        {
+            await ElementHolder.Animate(new Animation
+             {
+                 Easing = AnimationEasing.EaseIn,
+                 EasingFactor = EasingFactor.Cubic,
+                 Change = () => {
+                     ElementHolder.Opacity = 0.25f;
+                 },
+                 Duration = HalfDuration
+             });            
+
+            await ElementHolder.BringToFront();
+        }
+
+        async Task RemoveBackground()
+        {
+            await Background.RemoveSelf();
+            Background = null;
+        }
+
+        async Task ShowBackround(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested) return;
+
+            Background = new BackgroundControl();
+
+            Background.Y(0);
+            Background.X(0);
+            Background.Height.BindTo(View.Root.Height);
+            Background.Width.BindTo(View.Root.Width);
+
+            Background.On(x => x.RightButtonTapped, () => OnNextTapped?.SetResult(result: true))
+                .On(x => x.LeftButtonTapped, () =>
+                {
+                    SkipTapped = true;
+                    OnSkipTapped?.SetResult(result: true);
+                });
+
+            await View.Root.Add(Background);
+            await Background.BringToFront();
+            await View.Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Visible = false });
+
+            // Adding the ElementHolder
+            await View.Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Opacity = 0 });
+        }
     }
 }

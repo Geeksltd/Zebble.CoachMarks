@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Zebble
@@ -8,6 +9,8 @@ namespace Zebble
     {
         public class Step
         {
+            View element;
+
             public bool IsNextEnabled { get; set; } = true;
 
             public string Text { get; set; }
@@ -15,6 +18,8 @@ namespace Zebble
             public string ElementId { get; set; }
 
             internal Step() { /**/ }
+
+            internal View Element => element = element ?? View.Root.AllDescendents().FirstOrDefault(v => v.Id == ElementId);
         }
     }
 }
