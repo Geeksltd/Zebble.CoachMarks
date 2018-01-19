@@ -15,9 +15,11 @@ namespace Zebble
         TaskCompletionSource<bool> OnPopOverClosed;
         TaskCompletionSource<bool> OnNextTapped;
         TaskCompletionSource<bool> OnSkipTapped;
-
+        TaskCompletionSource<bool> OnBackTapped;
+        
         CancellationToken CancellationToken;
         bool SkipTapped;
+        int Index;
 
         View Element;
         View ElementParent;
@@ -44,8 +46,12 @@ namespace Zebble
                 // Create and show background which contains the next and skip button
                 await ShowBackround(cancellationToken);
 
-                foreach (var step in settings.Steps)
+                for (Index = 0; Index < Setting.Steps.Length; Index++)
                 {
+                    var step = Setting.Steps[Index];
+
+                    FixButtonsConditions();
+
                     if (ShouldItTerminate()) return;
 
                     // Show the step by showing it text and element.
@@ -55,9 +61,9 @@ namespace Zebble
 
                     // Wait for next, skip or time delay (If applicable) to continue.
                     if (settings.MoveOnByTime)
-                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task, Task.Delay(settings.Delay));
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task, Task.Delay(settings.Delay));
                     else
-                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnPopOverClosed.Task);
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task);
 
                     if (ShouldItTerminate()) return;
 
@@ -71,6 +77,12 @@ namespace Zebble
                     RemoveBackground(),
                     HideStep());
             }
+        }
+
+        void FixButtonsConditions()
+        {
+            Background.BackButtonVisible = Index > 0;
+            Background.NextButtonText = Setting.Steps.Length - 1 == Index ? "Finish" : "Next";
         }
 
         bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
@@ -110,6 +122,7 @@ namespace Zebble
             OnPopOverClosed = new TaskCompletionSource<bool>();
             OnNextTapped = new TaskCompletionSource<bool>();
             OnSkipTapped = new TaskCompletionSource<bool>();
+            OnBackTapped = new TaskCompletionSource<bool>();
 
             PopOver.On(x => x.OnHide, () =>
             {
@@ -140,7 +153,7 @@ namespace Zebble
 
         Canvas GetCanvasForElement(int radiusMax = 0)
         {
-            var result = new Canvas();
+            var result = new Canvas { CssClass = "coach-marks-element-holder".OnlyWhen(radiusMax > 0) };
 
             result.X(Element.CalculateAbsoluteX());
             result.Y(Element.CalculateAbsoluteY());
@@ -204,18 +217,19 @@ namespace Zebble
         {
             if (cancellationToken.IsCancellationRequested) return;
 
-            Background = new BackgroundControl();
+            Background = new BackgroundControl(Setting);
 
-            Background.Y(0);
-            Background.X(0);
-            Background.Height.BindTo(View.Root.Height);
-            Background.Width.BindTo(View.Root.Width);
-
-            Background.On(x => x.RightButtonTapped, () => OnNextTapped?.SetResult(result: true))
-                .On(x => x.LeftButtonTapped, () =>
+            Background
+                .On(x => x.NextButtonTapped, () => OnNextTapped?.TrySetResult(result: true))
+                .On(x => x.SkipButtonTapped, () =>
                 {
                     SkipTapped = true;
-                    OnSkipTapped?.SetResult(result: true);
+                    OnSkipTapped?.TrySetResult(result: true);
+                })
+                .On(x => x.BackButtonTapped, () =>
+                {
+                    Index -= 2;
+                    OnBackTapped?.TrySetResult(result: true);
                 });
 
             await View.Root.Add(Background);

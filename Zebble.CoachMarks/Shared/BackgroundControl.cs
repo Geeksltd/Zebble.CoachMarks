@@ -7,73 +7,79 @@ namespace Zebble
 {
     class BackgroundControl : Canvas
     {
-        const string COLOR_CODE = "#121212";
-        const float OPACITY = 0.4F;
+        CoachMarks.Settings Settings;
 
         Canvas Overlay;
-        Stack Stack;
-        Button LeftButton;
-        Button RightButton;
 
-        public readonly AsyncEvent LeftButtonTapped = new AsyncEvent();
-        public readonly AsyncEvent RightButtonTapped = new AsyncEvent();
+        Stack TopButtons;
+        Stack BottomButtons;
 
-        public string RightButtonText
+        Button NextButton;
+        Button SkipButton;
+        Button BackButton;
+
+        public readonly AsyncEvent NextButtonTapped = new AsyncEvent();
+        public readonly AsyncEvent SkipButtonTapped = new AsyncEvent();
+        public readonly AsyncEvent BackButtonTapped = new AsyncEvent();
+
+        public string NextButtonText
         {
-            get => RightButton.Text;
-            set => RightButton.Text = value;
+            get => NextButton.Text;
+            set => NextButton.Text = value;
         }
-        public string LeftButtonText
+
+        public bool BackButtonVisible
         {
-            get => LeftButton.Text;
-            set => LeftButton.Text = value;
+            get => BackButton.Visible;
+            set => BackButton.Visible = value;
         }
 
-        public BackgroundControl(string leftButtonText = "Skip", string rightButtonText = "Next")
+        public BackgroundControl(CoachMarks.Settings settings)
         {
-            Overlay = new Canvas
-            {
-                BackgroundColor = Color.Parse(COLOR_CODE),
-                Opacity = OPACITY
-            };
+            Settings = settings;
 
-            Overlay.X(0);
-            Overlay.Y(0);
-            Overlay.Height.BindTo(Height);
-            Overlay.Width.BindTo(Width);
+            Overlay = new Canvas { CssClass = "coach-marks-background" };
 
-            Add(Overlay);
+            // Buttons
+            NextButton = new Button { Text = "Next", CssClass = "next" }
+                .On(x => x.Tapped, () => NextButtonTapped.Raise());
 
-            LeftButton = new Button
-            {
-                Text = leftButtonText,
-                TextColor = Colors.Black,
-                BackgroundColor = Colors.White
-            };
-            LeftButton.Css.TextAlignment = Alignment.Left;
-            LeftButton.On(x => x.Tapped, () => LeftButtonTapped.Raise());
+            SkipButton = new Button { Text = "Skip", CssClass = "skip" }
+                .On(x => x.Tapped, () => SkipButtonTapped.Raise());
 
-            RightButton = new Button
-            {
-                Text = rightButtonText,
-                TextColor = Colors.White
-            };
-            RightButton.Css.TextAlignment = Alignment.Right;
-            RightButton.On(x => x.Tapped, () => RightButtonTapped.Raise());
+            BackButton = new Button { Text = "Back", CssClass = "back" }
+                .On(x => x.Tapped, () => BackButtonTapped.Raise());
 
-            Stack = new Stack
-            {
-                Direction = RepeatDirection.Horizontal
-            };
 
-            Stack.Css.Absolute = true;
-            Stack.Width.BindTo(Root.Width);
-            Stack.Y.BindTo(Root.Height, Stack.Height, (rh, sh) => rh - sh);
+            // Buttons` stacks
+            TopButtons = new Stack { CssClass = "coach-marks-buttons top" };
+            BottomButtons = new Stack { CssClass = "coach-marks-buttons bottom" };
+        }
 
-            Stack.Add(LeftButton);
-            Stack.Add(RightButton);
+        public override async Task OnInitializing()
+        {
+            await base.OnInitializing();
 
-            Add(Stack);
+            await Add(Overlay);
+            await Add(TopButtons);
+            await Add(BottomButtons);
+
+            await AddButtons(TopButtons, Settings.TopButtons);
+            await AddButtons(BottomButtons, Settings.BottomButtons);
+        }
+
+        async Task AddButtons(Stack stack, CoachMarks.Buttons buttons)
+        {
+            Func<CoachMarks.Buttons, bool> has = b => (buttons & b) == b;
+
+            if (has(CoachMarks.Buttons.Skip))
+                await stack.Add(SkipButton);
+
+            if (has(CoachMarks.Buttons.Back))
+                await stack.Add(BackButton);
+
+            if (has(CoachMarks.Buttons.Next))
+                await stack.Add(NextButton);
         }
     }
 }

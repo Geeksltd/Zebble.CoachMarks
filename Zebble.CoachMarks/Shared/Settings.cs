@@ -8,10 +8,13 @@ namespace Zebble
     {
         public class Settings
         {
+            Buttons AllButtons = Buttons.Skip | Buttons.Back | Buttons.Next;
+
+            Buttons topButtons = Buttons.Skip;
+            Buttons bottomButtons = Buttons.Next | Buttons.Back;
+
             List<Step> stepsList = new List<Step>();
-
-            public View MarksRoot { get; set; }
-
+            
             public bool MoveOnByTime { get; set; } = false;
 
             public TimeSpan Delay { get; set; } = new TimeSpan(0, 0, 3);
@@ -20,23 +23,51 @@ namespace Zebble
 
             public bool DisableRealEvents { get; set; } = false;
 
-            public IEnumerable<Step> Steps => stepsList.ToArray();
+            public Step[] Steps => stepsList.ToArray();
 
-            public bool CanSkip { get; set; } = true;
+            public Buttons TopButtons
+            {
+                get => topButtons;
+                set
+                {
+                    bottomButtons &= GetFilter(value);
+                    topButtons = value;
+                }
+            }
+
+            public Buttons BottomButtons
+            {
+                get => bottomButtons;
+                set
+                {
+                    topButtons &= GetFilter(value);
+                    bottomButtons = value;
+                }
+            }
+
+            public Buttons GetFilter(Buttons buttons) => (AllButtons & buttons) ^ AllButtons;
 
             public Step CreateStep(string text, string elementId, bool isNextEnabled = true)
             {
-                var step = new Step
+                var result = new Step
                 {
                     Text = text,
                     ElementId = elementId,
                     IsNextEnabled = isNextEnabled
                 };
 
-                stepsList.Add(step);
+                stepsList.Add(result);
 
-                return step;
+                return result;
             }
+        }
+
+        [Flags]
+        public enum Buttons
+        {
+            Back = 1,
+            Next = 2,
+            Skip = 4
         }
     }
 }

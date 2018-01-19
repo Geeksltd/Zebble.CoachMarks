@@ -1,21 +1,49 @@
-﻿.coach-marks- {
-    &background {
-        position: absolute;
-        background-color: #121212;
-        opacity: 0.4;
+﻿
+@mixin progress($navbar-height) {
+    .coach-marks- {
+        &element-holder {
+            background-color: white;
+        }
+
+        &background {
+            position: absolute;
+            background-color: #121212;
+            opacity: 0.4;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        &buttons {
+            &.top {
+                @if $navbar-height == 60 {
+                    margin-top: 15px;
+                }
+                @else {
+                    margin-top: 0;
+                }
+            }
+
+            &.bottom {
+                position: absolute;
+                height: 45px;
+                top: calc("View.Root.Height, view.Height, (r, b) => r - b");
+            }
+
+            Button {
+                height: 45px;
+                color: white;
+
+                &.back {
+                    background-color: white;
+                    color: black;
+                }
+            }
+        }
     }
 
-    &buttons {
-        position: absolute;
-        top: calc("View.Root.Height, view.Height, (r, b) => r - b");
-
-        .skip {
-            background-color: white;
-            color: black;
-        }
-
-        .next {
-            color: white;
-        }
+    Stack.coach-marks-buttons {
+        Direction: calc("RepeatDirection.Horizontal");
     }
 }
