@@ -23,6 +23,7 @@ namespace Zebble
         View ElementParent;
         View ElementHolder;
         View ElementInnerHolder;
+        View EventBlocker;
         PopOver PopOver;
 
         public bool IsCoaching => Background != null;
@@ -84,7 +85,8 @@ namespace Zebble
 
             await Task.WhenAll(
                 ElementHolder.RemoveSelf(),
-                ElementInnerHolder.RemoveSelf()
+                ElementInnerHolder.RemoveSelf(),
+                EventBlocker.RemoveSelf()
                 );
         }
 
@@ -128,6 +130,12 @@ namespace Zebble
             
             await ElementHolder.BringToFront();
             await ElementInnerHolder.BringToFront();
+
+            if(Setting.DisableRealEvents)
+            {
+                await View.Root.Add(EventBlocker = GetCanvasForElement());
+                await EventBlocker.BringToFront();
+            }
         }
 
         Canvas GetCanvasForElement(int radiusMax = 0)
