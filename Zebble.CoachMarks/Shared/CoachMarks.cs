@@ -22,6 +22,7 @@ namespace Zebble
         View Element;
         View ElementParent;
         View ElementHolder;
+        View ElementInnerHolder;
         PopOver PopOver;
 
         public bool IsCoaching => Background != null;
@@ -65,10 +66,9 @@ namespace Zebble
             }
             finally
             {
-                await RemoveBackground();
-
-                await HideStep();
-                await ElementHolder.RemoveSelf();
+                await Task.WhenAll(
+                    RemoveBackground(),
+                    HideStep());
             }
         }
 
@@ -76,9 +76,16 @@ namespace Zebble
 
         async Task HideStep()
         {
+            await Task.WhenAll(
+                ShrinkTheHolder(),
+                PopOver.Hide());
+
             await ChangeParent(Element, ElementParent, Element.ActualY, Element.ActualX);
-            
-            await PopOver.Hide();
+
+            await Task.WhenAll(
+                ElementHolder.RemoveSelf(),
+                ElementInnerHolder.RemoveSelf()
+                );
         }
 
         async Task ShowStep(Step step)
@@ -87,17 +94,22 @@ namespace Zebble
 
             ElementParent = Element.Parent ?? throw new InvalidOperationException();
 
+            async Task showPopOver(){ PopOver = await Element.ShowPopOver(step.Text); }
+
+            await CreateHolder();            
+            await ChangeParent(Element, ElementInnerHolder);
+
             await Task.WhenAll(
-                Fade(),
-                Move(),
-                ChangeParent(Element, ElementHolder, Setting.ElementPadding, Setting.ElementPadding),
-                ShowUp());
+                ExpandTheHolder(),
+                showPopOver()
+                );
+
 
             OnPopOverClosed = new TaskCompletionSource<bool>();
             OnNextTapped = new TaskCompletionSource<bool>();
             OnSkipTapped = new TaskCompletionSource<bool>();
 
-            PopOver = (await Element.ShowPopOver(step.Text)).On(x => x.OnHide, () =>
+            PopOver.On(x => x.OnHide, () =>
             {
                 if (!OnPopOverClosed.Task.IsCompleted)
                     OnPopOverClosed.SetResult(result: true);
@@ -105,63 +117,73 @@ namespace Zebble
 
             await PopOver.BringToFront();
         }
+        
+        async Task CreateHolder() {
+            // Adding the ElementHolder
+            await View.Root.Add(ElementHolder = GetCanvasForElement(Setting.ElementPadding));
+            ElementHolder.BackgroundColor = Colors.White;
+            ElementHolder.Opacity(0);
 
-        async Task ShowUp()
+            await View.Root.Add(ElementInnerHolder = GetCanvasForElement());
+            
+            await ElementHolder.BringToFront();
+            await ElementInnerHolder.BringToFront();
+        }
+
+        Canvas GetCanvasForElement(int radiusMax = 0)
         {
-            await Task.Delay(Animation.FadeDuration);
+            var result = new Canvas();
 
+            result.X(Element.CalculateAbsoluteX());
+            result.Y(Element.CalculateAbsoluteY());
+
+            result.Height(Element.ActualHeight);
+            result.Width(Element.ActualWidth);
+
+            Func<float, float> getBorderRadius = (a) => a + Setting.ElementPadding.LimitMax(radiusMax);
+
+            result.BorderRadius(
+                topLeft: getBorderRadius(Element.Border.RadiusTopLeft),
+                topRight: getBorderRadius(Element.Border.RadiusTopRight),
+                bottomLeft: getBorderRadius(Element.Border.RadiusBottomLeft),
+                bottomRight: getBorderRadius(Element.Border.RadiusBottomRight)
+                );
+
+            return result;
+        }
+
+        async Task ExpandTheHolder()
+        {
+            Func<float, float> getScale = a => (a + Setting.ElementPadding * 2) / a;
+
+            //ElementHolder.Opacity = 1;
             await ElementHolder.Animate(new Animation
             {
-                Easing = AnimationEasing.EaseOut,
+                Easing = AnimationEasing.EaseIn,
                 EasingFactor = EasingFactor.Cubic,
                 Change = () =>
                 {
-                    ElementHolder.Opacity = 1;
+                    ElementHolder.ScaleX(getScale(ElementHolder.ActualWidth));
+                    ElementHolder.ScaleY(getScale(ElementHolder.ActualHeight));
+                    ElementHolder.Opacity(1);
                 },
-                Duration = HalfDuration
+                Duration = Animation.FadeDuration
             });
         }
 
-        TimeSpan HalfDuration => ((int)(Animation.FadeDuration.TotalMilliseconds / 2)).Milliseconds();
-
-        async Task Move() {
-            await Task.Delay(HalfDuration);
-
+        async Task ShrinkTheHolder()
+        {
             await ElementHolder.Animate(new Animation
             {
                 Easing = AnimationEasing.EaseIn,
                 EasingFactor = EasingFactor.Cubic,
                 Change = () => {
-                    ElementHolder.Opacity = 0.25f;
-                    ElementHolder.X(Element.CalculateAbsoluteX() - Setting.ElementPadding);
-                    ElementHolder.Y(Element.CalculateAbsoluteY() - Setting.ElementPadding);
-
-                    ElementHolder.Height(Element.ActualHeight + Setting.ElementPadding * 2);
-                    ElementHolder.Width(Element.ActualWidth + Setting.ElementPadding * 2);
-
-                    ElementHolder.BorderRadius(
-                        topLeft: Element.Border.RadiusTopLeft + Setting.ElementPadding,
-                        topRight: Element.Border.RadiusTopRight + Setting.ElementPadding,
-                        bottomLeft: Element.Border.RadiusBottomLeft + Setting.ElementPadding,
-                        bottomRight: Element.Border.RadiusBottomRight + Setting.ElementPadding
-                        );
+                    ElementHolder.ScaleX(1);
+                    ElementHolder.ScaleY(1);
+                    ElementHolder.Opacity(0);
                 },
-                Duration = HalfDuration
+                Duration = Animation.FadeDuration
             });
-        }
-        async Task Fade()
-        {
-            await ElementHolder.Animate(new Animation
-             {
-                 Easing = AnimationEasing.EaseIn,
-                 EasingFactor = EasingFactor.Cubic,
-                 Change = () => {
-                     ElementHolder.Opacity = 0.25f;
-                 },
-                 Duration = HalfDuration
-             });            
-
-            await ElementHolder.BringToFront();
         }
 
         async Task RemoveBackground()
@@ -191,9 +213,6 @@ namespace Zebble
             await View.Root.Add(Background);
             await Background.BringToFront();
             await View.Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Visible = false });
-
-            // Adding the ElementHolder
-            await View.Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Opacity = 0 });
         }
     }
 }

@@ -37,7 +37,7 @@
     },
     {
       "Analyzer": "AsyncAwaitMethodAnalyzer",
-      "OccurrenceCount": 1,
+      "OccurrenceCount": 2,
       "Exceptions": null,
       "SentToServer": true,
       "InstallationName": "HAMIDM"

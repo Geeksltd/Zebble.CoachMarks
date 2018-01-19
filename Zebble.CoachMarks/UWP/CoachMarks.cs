@@ -10,7 +10,7 @@ namespace Zebble
 {
     partial class CoachMarks
     {
-        async Task ChangeParent(View view, View newParent, float top, float left)
+        async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {
             var parent = view.Parent;
 
