@@ -42,7 +42,7 @@
     <Reference Include="System.Core" />
     <Reference Include="Xamarin.iOS" />
     <Reference Include="Zebble.iOS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Zebble.4.2.375\lib\Xamarin.iOS10\Zebble.iOS.dll</HintPath>
+      <HintPath>..\..\packages\Zebble.4.3.101\lib\Xamarin.iOS10\Zebble.iOS.dll</HintPath>
     </Reference>
     <Reference Include="Zebble.PopOver.iOS">
       <HintPath>..\..\..\Zebble.HelpOverlay\lib\Zebble.PopOver.iOS.dll</HintPath>
@@ -52,10 +52,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Zebble-LicenseAgreement.txt" />
+    <Compile Include="CoachMarks.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoachMarks.cs" />
+    <Content Include="Zebble-LicenseAgreement.txt" />
   </ItemGroup>
   <Import Project="..\Shared\Shared.projitems" Label="Shared" Condition="Exists('..\Shared\Shared.projitems')" />
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />

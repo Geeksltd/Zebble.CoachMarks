@@ -23,7 +23,7 @@
     },
     {
       "Analyzer": "UnusedMethodsAnalyzer",
-      "OccurrenceCount": 145,
+      "OccurrenceCount": 212,
       "Exceptions": null,
       "SentToServer": true,
       "InstallationName": "HAMIDM"

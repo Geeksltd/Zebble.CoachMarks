@@ -114,7 +114,7 @@ namespace Zebble
             await ChangeParent(Element, ElementInnerHolder);
 
             await Task.WhenAll(
-                ExpandTheHolder(),
+                ExpandHolder(),
                 showPopOver()
                 );
 
@@ -173,7 +173,7 @@ namespace Zebble
             return result;
         }
 
-        async Task ExpandTheHolder()
+        async Task ExpandHolder()
         {
             Func<float, float> getScale = a => (a + Setting.ElementPadding * 2) / a;
 

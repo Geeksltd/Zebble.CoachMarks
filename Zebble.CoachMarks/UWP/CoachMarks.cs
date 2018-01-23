@@ -12,68 +12,45 @@ namespace Zebble
     {
         async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {
-            var parent = view.Parent;
+            RemoveParent(view.Native());
 
-            var native = view.Native() as xaml.UIElement;
-            var nativeParent = parent?.Native() as xaml.UIElement;            
+            AddToNativeParent(newParent, view.Native() as xaml.UIElement, top, left);
         }
 
-        //async Task AddToNativeParent(View zebbleParent, xaml.UIElement nativeChild)
-        //{
-        //    var parent = zebbleParent?.parent;
-        //    var nativeParent = parent?.Native() as xaml.UIElement;
+        void RemoveParent(xaml.FrameworkElement native)
+        {
+            var parent = native.Parent as xaml.FrameworkElement;
+            if (parent is controls.Panel panel)
+                panel.Children.Remove(native);
+            else
+                Device.Log.Error($"The item is not removed., type: {parent.GetType()}");
+        }
 
-        //    if (nativeParent is controls.Border wrapper) nativeParent = wrapper.Child;
+        void AddToNativeParent(View parent, xaml.UIElement nativeChild, float top, float left)
+        {
+            var nativeParent = parent?.Native() as xaml.UIElement;
 
-        //    //var nativeChild = NativeResult;
-
-        //    // High concurrency. Already disposed:
-        //    if (zebbleParent == null || zebbleParent.IsDisposing) return;
-        //    if (parent == null || parent.IsDisposed || nativeParent == null || nativeChild == null) return;
-
-        //    using (await parent.DomLock.LockAsync())
-        //    {
-        //        using (await zebbleParent.DomLock.LockAsync())
-        //        {
-        //            nativeChild.Visibility = xaml.Visibility.Collapsed;
-
-        //            try
-        //            {
-        //                if (nativeParent is controls.Panel panel)
-        //                    panel.Children.Add(nativeChild);
-        //                else if (nativeParent is controls.ScrollViewer scroller)
-        //                    (scroller.Content as controls.Panel)?.Children.Add(nativeChild);
-        //                else throw new Exception(nativeParent.GetType().Name +
-        //                        " is not a supported container for rendering.");
-        //            }
-        //            catch (System.Runtime.InteropServices.COMException)
-        //            {
-        //                /*No logging is needed. Is this a strange random UWP bug ?*/
-        //            }
-
-        //            var size = zebbleParent.GetNativeSize(nativeChild);
-        //            NativeElement.Width = size.Width;
-        //            NativeElement.Height = size.Height;
-        //            (zebbleParent as Canvas)?.ApplyClip(NativeElement);
-        //            controls.Canvas.SetLeft(nativeChild, zebbleParent.ActualX);
-        //            controls.Canvas.SetTop(nativeChild, zebbleParent.ActualY);
-
-        //            if (zebbleParent.ActualY == 0 && parent.CurrentChildren.IndexOf(zebbleParent) != 0)
-        //            {
-        //                for (var i = 1; i < 3; i++)
-        //                {
-        //                    await Task.Delay(10);
-        //                    if (zebbleParent.ActualY != 0) break;
-        //                }
-
-        //                controls.Canvas.SetTop(nativeChild, zebbleParent.ActualY);
-        //            }
-
-        //            OnVisibilityChanged();
-        //        }
-        //    }
-
-        //    zebbleParent.BroughtToFront.Raise().ContinueWith(x => zebbleParent.PushBackToZIndexOrder()).RunInParallel();
-        //}
+            if (nativeParent is controls.Border wrapper) nativeParent = wrapper.Child;
+            
+            // High concurrency. Already disposed:
+            if (parent == null || parent.IsDisposed || nativeParent == null || nativeChild == null) return;
+            
+            try
+            {
+                if (nativeParent is controls.Panel panel)
+                    panel.Children.Add(nativeChild);
+                else if (nativeParent is controls.ScrollViewer scroller)
+                    (scroller.Content as controls.Panel)?.Children.Add(nativeChild);
+                else throw new Exception(nativeParent.GetType().Name +
+                        " is not a supported container for rendering.");
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                /*No logging is needed. Is this a strange random UWP bug ?*/
+            }
+                    
+            controls.Canvas.SetLeft(nativeChild, left);
+            controls.Canvas.SetTop(nativeChild, top);
+        }
     }
 }
