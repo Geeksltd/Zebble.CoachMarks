@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Android.Widget;
 using System.Threading.Tasks;
+using Zebble.AndroidOS;
 using AndroidViews = Android.Views;
 
 namespace Zebble
@@ -12,25 +10,25 @@ namespace Zebble
         async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {
             var native = view.Native();
-
-            var parent = view.parent;
-            var nativeParent = parent?.Native();
-            var newNativeParent = newParent.Native();
-
-
-            // High concurrency. Already disposed:
-            if (view.IsDisposing || parent == null || parent.IsDisposed || newNativeParent == null) return;
-
             
-            if (newNativeParent is AndroidOS.IScrollView scrollview)
+            var nativeParent = native.Parent;
+            var newNativeParent = newParent.Native();
+            
+            if (nativeParent is IScrollView scrollview)
+                scrollview.GetContainer().RemoveView(native);
+            else if (nativeParent is AndroidViews.ViewGroup viewGroup)
+                viewGroup.RemoveView(native);
+
+            if (newNativeParent is IScrollView newScrollview)
+                newScrollview.GetContainer().AddView(native);
+            else if (newNativeParent is AndroidViews.ViewGroup newViewGroup)
+                newViewGroup.AddView(native);
+
+            native.LayoutParameters = new FrameLayout.LayoutParams(native.LayoutParameters)
             {
-                scrollview.GetContainer().AddView(native);
-            }
-            else if (newNativeParent is AndroidViews.ViewGroup viewGroup)
-            {
-                if (native.Parent != null) viewGroup.RemoveView(native);
-                viewGroup.AddView(native);
-            }
+                LeftMargin = Scaler.ToDevice(left),
+                TopMargin = Scaler.ToDevice(top),
+            };
         }
     }
 }
