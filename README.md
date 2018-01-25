@@ -35,14 +35,14 @@ CoachMarks is a plugin for Zebble apps to show a brief help to the users.
 
 
 ```csharp
-var setting = new CoachMarks.Settings
+var settings = new CoachMarks.Settings
 {
   DisableRealEvents = true,
   TopButtons = Buttons.Skip,
   BottomButtons = Buttons.Next | Buttons.Back
 };
 
-var coach = new CoachMarks(setting);
+var coach = new CoachMarks(settings);
 
 coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
@@ -54,7 +54,7 @@ As the coaching would take time, it would be a good idea to call the Coach metho
 ```csharp
 var coach = new CoachMarks();
 
-coach.Setting.MoveOnByTime = true;
+coach.Settings.MoveOnByTime = true;
 coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 
 coach.Coach();
@@ -78,7 +78,7 @@ coach.Coach();
 | Property     | Type         | Android | iOS | Windows |
 | :----------- | :----------- | :------ | :-- | :------ |
 | IsCoaching   | bool         | x       | x   | x       |
-| Setting   | CoachMarks.Settings         | x       | x   | x       |
+| Settings   | CoachMarks.Settings         | x       | x   | x       |
 
 
 
