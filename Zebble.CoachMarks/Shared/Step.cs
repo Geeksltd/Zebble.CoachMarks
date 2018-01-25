@@ -10,9 +10,7 @@ namespace Zebble
         public class Step
         {
             View element;
-
-            public bool IsNextEnabled { get; set; } = true;
-
+            
             public string Text { get; set; }
 
             public string ElementId { get; set; }

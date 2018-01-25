@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,14 +7,14 @@ namespace Zebble
 {
     public partial class CoachMarks
     {
-        Settings Setting;
+        List<Step> stepsList = new List<Step>();
         BackgroundControl Background;
-        
+
         TaskCompletionSource<bool> OnPopOverClosed;
         TaskCompletionSource<bool> OnNextTapped;
         TaskCompletionSource<bool> OnSkipTapped;
         TaskCompletionSource<bool> OnBackTapped;
-        
+
         CancellationToken CancellationToken;
         bool SkipTapped;
         int Index;
@@ -25,17 +26,35 @@ namespace Zebble
         View EventBlocker;
         PopOver PopOver;
 
+        public CoachMarksSettings Settings { get; }
+
         public bool IsCoaching => Background != null;
 
-        public Task Coach(Settings settings) => Coach(settings, CancellationToken.None);
+        public CoachMarks() : this(new CoachMarksSettings()) { }
 
-        public async Task Coach(Settings settings, CancellationToken cancellationToken)
+        public CoachMarks(CoachMarksSettings settings) => Settings = settings;
+
+        public Step CreateStep(string text, string elementId)
+        {
+            var result = new Step
+            {
+                Text = text,
+                ElementId = elementId
+            };
+
+            stepsList.Add(result);
+
+            return result;
+        }
+
+        public Task Show() => Show(CancellationToken.None);
+
+        public async Task Show(CancellationToken cancellationToken)
         {
             if (IsCoaching)
                 throw new InvalidOperationException("Coaching is under process.");
 
             CancellationToken = cancellationToken;
-            Setting = settings;
             SkipTapped = false;
             
             try
@@ -43,9 +62,9 @@ namespace Zebble
                 // Create and show background which contains the next and skip button
                 await ShowBackround(cancellationToken);
 
-                for (Index = 0; Index < Setting.Steps.Length; Index++)
+                for (Index = 0; Index < stepsList.Count; Index++)
                 {
-                    var step = Setting.Steps[Index];
+                    var step = stepsList[Index];
 
                     FixButtonsConditions();
 
@@ -57,8 +76,8 @@ namespace Zebble
                     if (ShouldItTerminate()) return;
 
                     // Wait for next, skip or time delay (If applicable) to continue.
-                    if (settings.MoveOnByTime)
-                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task, Task.Delay(settings.Delay));
+                    if (Settings.MoveOnByTime)
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task, Task.Delay(Settings.Delay));
                     else
                         await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task);
 
@@ -76,10 +95,16 @@ namespace Zebble
             }
         }
 
+        public void Hide()
+        {
+            SkipTapped = true;
+            OnSkipTapped?.TrySetResult(result: true);
+        }
+
         void FixButtonsConditions()
         {
             Background.BackButtonVisible = Index > 0;
-            Background.NextButtonText = Setting.Steps.Length - 1 == Index ? "Finish" : "Next";
+            Background.NextButtonText = stepsList.Count - 1 == Index ? "Finish" : "Next";
         }
 
         bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
@@ -105,7 +130,7 @@ namespace Zebble
 
             ElementParent = Element.Parent ?? throw new InvalidOperationException();
 
-            async Task showPopOver(){ PopOver = await Element.ShowPopOver(step.Text); }
+            async Task showPopOver(){ PopOver = await Element.PopOver(step.Text); }
 
             await CreateHolder();            
             await ChangeParent(Element, ElementInnerHolder);
@@ -132,7 +157,7 @@ namespace Zebble
         
         async Task CreateHolder() {
             // Adding the ElementHolder
-            await View.Root.Add(ElementHolder = GetCanvasForElement(Setting.ElementPadding));
+            await View.Root.Add(ElementHolder = GetCanvasForElement(Settings.ElementPadding));
             ElementHolder.BackgroundColor = Colors.White;
             ElementHolder.Opacity(0);
 
@@ -141,7 +166,7 @@ namespace Zebble
             await ElementHolder.BringToFront();
             await ElementInnerHolder.BringToFront();
 
-            if(Setting.DisableRealEvents)
+            if(Settings.DisableRealEvents)
             {
                 await View.Root.Add(EventBlocker = GetCanvasForElement());
                 await EventBlocker.BringToFront();
@@ -158,7 +183,7 @@ namespace Zebble
             result.Height(Element.ActualHeight);
             result.Width(Element.ActualWidth);
 
-            Func<float, float> getBorderRadius = (a) => a + Setting.ElementPadding.LimitMax(radiusMax);
+            Func<float, float> getBorderRadius = (a) => a + Settings.ElementPadding.LimitMax(radiusMax);
 
             result.BorderRadius(
                 topLeft: getBorderRadius(Element.Border.RadiusTopLeft),
@@ -172,7 +197,7 @@ namespace Zebble
 
         async Task ExpandHolder()
         {
-            Func<float, float> getScale = a => (a + Setting.ElementPadding * 2) / a;
+            Func<float, float> getScale = a => (a + Settings.ElementPadding * 2) / a;
 
             //ElementHolder.Opacity = 1;
             await ElementHolder.Animate(new Animation
@@ -214,15 +239,11 @@ namespace Zebble
         {
             if (cancellationToken.IsCancellationRequested) return;
 
-            Background = new BackgroundControl(Setting);
+            Background = new BackgroundControl(Settings);
 
             Background
                 .On(x => x.NextButtonTapped, () => OnNextTapped?.TrySetResult(result: true))
-                .On(x => x.SkipButtonTapped, () =>
-                {
-                    SkipTapped = true;
-                    OnSkipTapped?.TrySetResult(result: true);
-                })
+                .On(x => x.SkipButtonTapped, () => Hide())
                 .On(x => x.BackButtonTapped, () =>
                 {
                     Index -= 2;

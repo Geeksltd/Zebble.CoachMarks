@@ -10,8 +10,6 @@ CoachMarks is a plugin for Zebble apps to show a brief help to the users.
 
 [![NuGet](https://img.shields.io/nuget/v/Zebble.CoachMarks.svg?label=NuGet)](https://www.nuget.org/packages/Zebble.CoachMarks/)
 
-> The definition or description of the native feature or third party plugin
-
 <br>
 
 
@@ -28,17 +26,14 @@ CoachMarks is a plugin for Zebble apps to show a brief help to the users.
 ```scss
 @include coach-marks($navbar-height);
 ```
-<br>
-
-### Setup
-It is obvious that CoachMarks depends on [Zebble](https://www.nuget.org/packages/Zebble) but it also depends on [PopOver](https://github.com/Geeksltd/Zebble.PopOver) and you should follow its setup steps as well.
+* As it depends on [PopOver](https://github.com/Geeksltd/Zebble.PopOver), you should follow its setup steps as well.
 
 <br>
 
 
 ### Api Usage
 
-#### Setting
+
 ```csharp
 var setting = new CoachMarks.Settings
 {
@@ -47,10 +42,25 @@ var setting = new CoachMarks.Settings
   BottomButtons = Buttons.Next | Buttons.Back
 };
 
-setting.CreateStep("Tap this button to skip this part.", SkipButton.Id);
-setting.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
-setting.CreateStep("You could find more feature here.", "MenuButton");
+var coach = new CoachMarks(setting);
+
+coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
+coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
+coach.CreateStep("You could find more feature here.", "MenuButton");
+
+await coach.Coach();
 ```
+As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is going out.
+```csharp
+var coach = new CoachMarks();
+
+coach.Setting.MoveOnByTime = true;
+coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
+
+coach.Coach();
+```
+
+### Setting
 
 | Property          | Type              | decvription |
 | :-----------      | :-----------      | :------ |
@@ -63,23 +73,12 @@ setting.CreateStep("You could find more feature here.", "MenuButton");
 
 <br>
 
-#### To coach
-```csharp
-var coach = new CoachMarks();
-await coach.Coach(setting);
-```
-As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is going out.
-```csharp
-new CoachMarks().Coach(setting);
-```
-
-<br>
-
 
 ### Properties
 | Property     | Type         | Android | iOS | Windows |
 | :----------- | :----------- | :------ | :-- | :------ |
 | IsCoaching   | bool         | x       | x   | x       |
+| Setting   | CoachMarks.Settings         | x       | x   | x       |
 
 
 
@@ -98,4 +97,6 @@ new CoachMarks().Coach(setting);
 ### Methods
 | Method       | Return Type  | Parameters                          | Android | iOS | Windows |
 | :----------- | :----------- | :-----------                        | :------ | :-- | :------ |
-| Coach        | Task         | Settings => settings, CancellationToken => cancellationToken | x       | x   | x       |
+| Show        | Task         | CancellationToken => cancellationToken | x       | x   | x       |
+| Hide        | void         |		| x       | x   | x       |
+| CreateStep   | void         | string => text, string => elementId | x       | x   | x       |

@@ -7,7 +7,7 @@ namespace Zebble
 {
     class BackgroundControl : Canvas
     {
-        CoachMarks.Settings Settings;
+        CoachMarksSettings Settings;
 
         Canvas Overlay;
 
@@ -34,7 +34,7 @@ namespace Zebble
             set => BackButton.Visible = value;
         }
 
-        public BackgroundControl(CoachMarks.Settings settings)
+        public BackgroundControl(CoachMarksSettings settings)
         {
             Settings = settings;
 
@@ -68,17 +68,17 @@ namespace Zebble
             await AddButtons(BottomButtons, Settings.BottomButtons);
         }
 
-        async Task AddButtons(Stack stack, CoachMarks.Buttons buttons)
+        async Task AddButtons(Stack stack, CoachMarksSettings.Buttons buttons)
         {
-            Func<CoachMarks.Buttons, bool> has = b => (buttons & b) == b;
+            Func<CoachMarksSettings.Buttons, bool> has = b => (buttons & b) == b;
 
-            if (has(CoachMarks.Buttons.Skip))
+            if (has(CoachMarksSettings.Buttons.Skip))
                 await stack.Add(SkipButton);
 
-            if (has(CoachMarks.Buttons.Back))
+            if (has(CoachMarksSettings.Buttons.Back))
                 await stack.Add(BackButton);
 
-            if (has(CoachMarks.Buttons.Next))
+            if (has(CoachMarksSettings.Buttons.Next))
                 await stack.Add(NextButton);
         }
     }
