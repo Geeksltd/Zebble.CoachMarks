@@ -45,7 +45,8 @@ namespace Zebble
                 }
             }
 
-            public Buttons GetFilter(Buttons buttons) => (AllButtons & buttons) ^ AllButtons;
+
+            Buttons GetFilter(Buttons buttons) => (AllButtons & buttons) ^ AllButtons;
 
             public Step CreateStep(string text, string elementId, bool isNextEnabled = true)
             {
@@ -65,6 +66,7 @@ namespace Zebble
         [Flags]
         public enum Buttons
         {
+            None = 0,
             Back = 1,
             Next = 2,
             Skip = 4
