@@ -1,4 +1,4 @@
-[logo]: https://raw.githubusercontent.com/Geeksltd/Zebble.CoachMarks/master/Zebble.CoachMarks/Shared/Icon.png "Zebble.CoachMarks"
+[logo]: https://raw.githubusercontent.com/Geeksltd/Zebble.CoachMarks/master/Shared/NuGet/Icon.png "Zebble.CoachMarks"
 
 
 ## Zebble.CoachMarks
