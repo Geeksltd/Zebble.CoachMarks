@@ -1,6 +1,7 @@
 ﻿{
   "dependencies": {
-    "Zebble": "4.3.101"
+    "Zebble": "4.4.102",
+    "Zebble.PopOver": "1.1.100"
   },
   "frameworks": {
     "uap10.0.10240": {}

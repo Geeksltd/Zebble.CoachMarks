@@ -109,11 +109,6 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Zebble.PopOver.UWP">
-      <HintPath>..\..\..\Zebble.HelpOverlay\lib\Zebble.PopOver.UWP.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="CoachMarks.cs" />
   </ItemGroup>
   <Import Project="..\Shared\Shared.projitems" Label="Shared" Condition="Exists('..\Shared\Shared.projitems')" />
