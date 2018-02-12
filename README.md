@@ -35,11 +35,11 @@ CoachMarks is a plugin for Zebble apps to show a brief help to the users.
 
 
 ```csharp
-var settings = new CoachMarks.Settings
+var settings = new CoachMarksSettings
 {
-  DisableRealEvents = true,
-  TopButtons = Buttons.Skip,
-  BottomButtons = Buttons.Next | Buttons.Back
+    DisableRealEvents = true,
+    TopButtons = CoachMarksSettings.Buttons.Skip,
+    BottomButtons = CoachMarksSettings.Buttons.Next | CoachMarksSettings.Buttons.Back
 };
 
 var coach = new CoachMarks(settings);
@@ -48,7 +48,7 @@ coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
 coach.CreateStep("You could find more feature here.", "MenuButton");
 
-await coach.Coach();
+await coach.Show();
 ```
 As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is going out.
 ```csharp
@@ -57,8 +57,12 @@ var coach = new CoachMarks();
 coach.Settings.MoveOnByTime = true;
 coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 
-coach.Coach();
+coach.Show();
 ```
+
+The `Show` method should be called in the UI thread so you can call it like `await Thread.UI.Run(() => coach.Show());`.
+
+<br>
 
 ### Setting
 
@@ -68,8 +72,8 @@ coach.Coach();
 | Delay             | TimeSpan          | The specific time for the MoveOnByTime.          |
 | ElementPadding    | int               | The element you are pointed at for any steps would be held in a container and its the padding of the holder.|
 | DisableRealEvents | bool              | Disable the events to suppress any interaction in middle of the coach time.          |
-| TopButtons        | CoachMarks.Buttons| There are two default sections to add buttons (Skip, Next and Back).          |
-| BottomButtons     | CoachMarks.Buttons| There are two default sections to add buttons (Skip, Next and Back).          |
+| TopButtons        | CoachMarksSettings.Buttons| There are two default sections to add buttons (Skip, Next and Back).          |
+| BottomButtons     | CoachMarksSettings.Buttons| There are two default sections to add buttons (Skip, Next and Back).          |
 
 <br>
 
@@ -78,7 +82,7 @@ coach.Coach();
 | Property     | Type         | Android | iOS | Windows |
 | :----------- | :----------- | :------ | :-- | :------ |
 | IsCoaching   | bool         | x       | x   | x       |
-| Settings   | CoachMarks.Settings         | x       | x   | x       |
+| Settings   | CoachMarksSettings         | x       | x   | x       |
 
 
 
