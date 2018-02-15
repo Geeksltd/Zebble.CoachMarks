@@ -8,6 +8,9 @@ namespace Zebble
     public partial class CoachMarks : Canvas
     {
         List<Step> stepsList = new List<Step>();
+        CancellationToken CancellationToken;
+        bool SkipTapped;
+        int Index;
 
         Canvas Overlay;
         Stack TopButtons;
@@ -16,21 +19,11 @@ namespace Zebble
         Button SkipButton;
         Button BackButton;
 
-        TaskCompletionSource<bool> OnPopOverClosed;
+        CurrentStep CurrentStep;
+
         TaskCompletionSource<bool> OnNextTapped;
         TaskCompletionSource<bool> OnSkipTapped;
         TaskCompletionSource<bool> OnBackTapped;
-
-        CancellationToken CancellationToken;
-        bool SkipTapped;
-        int Index;
-
-        View Element;
-        View ElementParent;
-        View ElementHolder;
-        View ElementInnerHolder;
-        View EventBlocker;
-        PopOver PopOver;
 
         public readonly AsyncEvent NextButtonTapped = new AsyncEvent();
         public readonly AsyncEvent SkipButtonTapped = new AsyncEvent();
@@ -88,7 +81,8 @@ namespace Zebble
 
             CancellationToken = cancellationToken;
             SkipTapped = false;
-            
+            CurrentStep currentStep = null;
+
             try
             {
                 // Create and show background which contains the next and skip button
@@ -103,25 +97,25 @@ namespace Zebble
                     if (ShouldItTerminate()) return;
 
                     // Show the step by showing it text and element.
-                    await ShowStep(step);
+                    currentStep = await ShowStep(step);
 
                     if (ShouldItTerminate()) return;
 
                     // Wait for next, skip or time delay (If applicable) to continue.
                     if (Settings.MoveOnByTime)
-                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task, Task.Delay(Settings.Delay));
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, currentStep.OnPopOverClosed.Task, Task.Delay(Settings.Delay));
                     else
-                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, OnPopOverClosed.Task);
+                        await Task.WhenAny(OnNextTapped.Task, OnSkipTapped.Task, OnBackTapped.Task, currentStep.OnPopOverClosed.Task);
 
                     if (ShouldItTerminate()) return;
 
                     // Hide the step by showing it text and element.
-                    await HideStep();
+                    await HideStep(currentStep);
                 }
             }
             finally
             {
-                await Task.WhenAll(RemoveButtons(), HideStep());
+                await Task.WhenAll(RemoveButtons(), HideStep(currentStep));
             }
         }
 
@@ -139,113 +133,24 @@ namespace Zebble
 
         bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
         
-        async Task HideStep()
+        async Task HideStep(CurrentStep currentStep)
         {
-            await Task.WhenAll(ShrinkTheHolder(), PopOver.Hide());
+            if (currentStep == null) return;
 
-            await ChangeParent(Element, ElementParent, Element.ActualY, Element.ActualX);
-
-            await Task.WhenAll(ElementHolder.RemoveSelf(), ElementInnerHolder.RemoveSelf(), EventBlocker.RemoveSelf());
+            await currentStep.Hide();
         }
 
-        async Task ShowStep(Step step)
+        async Task<CurrentStep> ShowStep(Step step)
         {
-            Element = step.Element;
-
-            ElementParent = Element.Parent ?? throw new InvalidOperationException();
-
-            async Task showPopOver(){ PopOver = await Element.PopOver(step.Text); }
-
-            await CreateHolder();            
-            await ChangeParent(Element, ElementInnerHolder);
-
-            await Task.WhenAll(ExpandHolder(), showPopOver());
-
-            OnPopOverClosed = new TaskCompletionSource<bool>();
             OnNextTapped = new TaskCompletionSource<bool>();
             OnSkipTapped = new TaskCompletionSource<bool>();
             OnBackTapped = new TaskCompletionSource<bool>();
 
-            PopOver.On(x => x.OnHide, () =>
-            {
-                if (!OnPopOverClosed.Task.IsCompleted)
-                    OnPopOverClosed.SetResult(result: true);
-            });
+            var currentStep = new CurrentStep(step.Element, step.Text, Settings);
 
-            await PopOver.BringToFront();
-        }
-        
-        async Task CreateHolder() {
-            // Adding the ElementHolder
-            await Root.Add(ElementHolder = GetCanvasForElement(Settings.ElementPadding));
-            ElementHolder.BackgroundColor = Colors.White;
-            ElementHolder.Opacity(0);
+            await currentStep.Show();
 
-            await Root.Add(ElementInnerHolder = GetCanvasForElement());
-            
-            await ElementHolder.BringToFront();
-            await ElementInnerHolder.BringToFront();
-
-            if(Settings.DisableRealEvents)
-            {
-                await Root.Add(EventBlocker = GetCanvasForElement());
-                await EventBlocker.BringToFront();
-            }
-        }
-
-        Canvas GetCanvasForElement(int radiusMax = 0)
-        {
-            var result = new Canvas { CssClass = "coach-marks-element-holder".OnlyWhen(radiusMax > 0) };
-
-            result.X(Element.CalculateAbsoluteX());
-            result.Y(Element.CalculateAbsoluteY());
-
-            result.Height(Element.ActualHeight);
-            result.Width(Element.ActualWidth);
-
-            Func<float, float> getBorderRadius = (a) => a + Settings.ElementPadding.LimitMax(radiusMax);
-
-            result.BorderRadius(
-                topLeft: getBorderRadius(Element.Border.RadiusTopLeft),
-                topRight: getBorderRadius(Element.Border.RadiusTopRight),
-                bottomLeft: getBorderRadius(Element.Border.RadiusBottomLeft),
-                bottomRight: getBorderRadius(Element.Border.RadiusBottomRight)
-                );
-
-            return result;
-        }
-
-        async Task ExpandHolder()
-        {
-            Func<float, float> getScale = a => (a + Settings.ElementPadding * 2) / a;
-
-            await ElementHolder.Animate(new Animation
-            {
-                Easing = AnimationEasing.EaseIn,
-                EasingFactor = EasingFactor.Cubic,
-                Change = () =>
-                {
-                    ElementHolder.ScaleX(getScale(ElementHolder.ActualWidth));
-                    ElementHolder.ScaleY(getScale(ElementHolder.ActualHeight));
-                    ElementHolder.Opacity(1);
-                },
-                Duration = Animation.FadeDuration
-            });
-        }
-
-        async Task ShrinkTheHolder()
-        {
-            await ElementHolder.Animate(new Animation
-            {
-                Easing = AnimationEasing.EaseIn,
-                EasingFactor = EasingFactor.Cubic,
-                Change = () => {
-                    ElementHolder.ScaleX(1);
-                    ElementHolder.ScaleY(1);
-                    ElementHolder.Opacity(0);
-                },
-                Duration = Animation.FadeDuration
-            });
+            return currentStep;
         }
 
         async Task AddButtons(CancellationToken cancellationToken)
@@ -271,20 +176,17 @@ namespace Zebble
 
             await Root.Add(this);
             await BringToFront();
-            await Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Visible = false });
         }
 
         async Task AddButtons(Stack stack, CoachMarksSettings.Buttons buttons)
         {
-            bool Has(CoachMarksSettings.Buttons b) => (buttons & b) == b;
-
-            if (Has(CoachMarksSettings.Buttons.Skip))
+            if (buttons.HasFlag(CoachMarksSettings.Buttons.Skip))
                 await stack.Add(SkipButton);
 
-            if (Has(CoachMarksSettings.Buttons.Back))
+            if (buttons.HasFlag(CoachMarksSettings.Buttons.Back))
                 await stack.Add(BackButton);
 
-            if (Has(CoachMarksSettings.Buttons.Next))
+            if (buttons.HasFlag(CoachMarksSettings.Buttons.Next))
                 await stack.Add(NextButton);
         }
 

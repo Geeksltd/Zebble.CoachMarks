@@ -1,11 +1,11 @@
-﻿using Android.Widget;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using Android.Widget;
 using Zebble.AndroidOS;
 using AndroidViews = Android.Views;
 
 namespace Zebble
 {
-    partial class CoachMarks
+    partial class CurrentStep
     {
         async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {

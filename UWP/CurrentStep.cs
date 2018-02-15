@@ -5,7 +5,7 @@ using xaml = Windows.UI.Xaml;
 
 namespace Zebble
 {
-    partial class CoachMarks
+    partial class CurrentStep
     {
         async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {

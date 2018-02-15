@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CoachMarks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Settings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CurrentStep.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Step.cs" />
     <None Include="$(MSBuildThisFileDirectory)CoachMarks.scss" />
     <None Include="$(MSBuildThisFileDirectory)Icon.png" />

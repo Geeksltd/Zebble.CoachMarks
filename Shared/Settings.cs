@@ -37,7 +37,6 @@ namespace Zebble
             }
         }
 
-
         Buttons GetFilter(Buttons buttons) => (AllButtons & buttons) ^ AllButtons;
 
         [Flags]

@@ -52,7 +52,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoachMarks.cs" />
+    <Compile Include="CurrentStep.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Zebble-LicenseAgreement.txt" />

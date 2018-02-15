@@ -1,18 +1,13 @@
-﻿using CoreGraphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using CoreGraphics;
 
 namespace Zebble
 {
-    partial class CoachMarks
+    partial class CurrentStep
     {
         async Task ChangeParent(View view, View newParent, float top = 0, float left = 0)
         {
             await Task.Delay(Animation.FadeDuration);
-            var parent = view.Parent;
 
             var native = view.Native();
 

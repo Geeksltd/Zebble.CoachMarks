@@ -59,7 +59,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoachMarks.cs" />
+    <Compile Include="CurrentStep.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Zebble.exe" />
