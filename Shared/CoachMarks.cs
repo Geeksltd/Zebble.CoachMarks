@@ -36,10 +36,21 @@ namespace Zebble
 
         public Step CreateStep(string text, string elementId)
         {
-            var result = new Step
+            var result = new Step(elementId)
             {
-                Text = text,
-                ElementId = elementId
+                Text = text
+            };
+
+            stepsList.Add(result);
+
+            return result;
+        }
+
+        public Step CreateStep(string text, View element)
+        {
+            var result = new Step(element)
+            {
+                Text = text
             };
 
             stepsList.Add(result);
