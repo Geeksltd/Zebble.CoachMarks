@@ -24,7 +24,7 @@ CoachMarks is a plugin for Zebble apps to show a brief help to the users.
 ```
 * Call its mixin in the `common.scss` just like the other mixins.
 ```scss
-@include coach-marks($navbar-height);
+@include coach-marks(45); // Your navbar height
 ```
 * As it depends on [PopOver](https://github.com/Geeksltd/Zebble.PopOver), you should follow its setup steps as well.
 
@@ -48,16 +48,18 @@ coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
 coach.CreateStep("You could find more feature here.", "MenuButton");
 
-await coach.Show();
+await Thread.UI.Run(() => coach.Show());
 ```
 As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is going out.
 ```csharp
 var coach = new CoachMarks();
 
 coach.Settings.MoveOnByTime = true;
+coach.Settings.Delay = TimeSpan.FromSeconds(2);
+
 coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 
-coach.Show();
+await Thread.UI.Run(() => coach.Show());
 ```
 
 The `Show` method should be called in the UI thread so you can call it like `await Thread.UI.Run(() => coach.Show());`.
