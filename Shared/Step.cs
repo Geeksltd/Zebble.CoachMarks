@@ -16,12 +16,12 @@ namespace Zebble
             {
                 get
                 {
-                    if (element == null)
+                    if (element != null)
                     {
-                        element = View.Root.AllDescendents().FirstOrDefault(v => v.Id == ElementId);
+                        return element;
                     }
 
-                    return element;
+                    return Root.AllDescendents().FirstOrDefault(v => v.Id == ElementId);
                 }
             }
 

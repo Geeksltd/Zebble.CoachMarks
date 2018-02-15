@@ -9,7 +9,6 @@
     <Import_RootNamespace>Zebble</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)BackgroundControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CoachMarks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Step.cs" />

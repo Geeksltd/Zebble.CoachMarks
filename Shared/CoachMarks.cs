@@ -5,10 +5,16 @@ using System.Threading.Tasks;
 
 namespace Zebble
 {
-    public partial class CoachMarks
+    public partial class CoachMarks : Canvas
     {
         List<Step> stepsList = new List<Step>();
-        BackgroundControl Background;
+
+        Canvas Overlay;
+        Stack TopButtons;
+        Stack BottomButtons;
+        Button NextButton;
+        Button SkipButton;
+        Button BackButton;
 
         TaskCompletionSource<bool> OnPopOverClosed;
         TaskCompletionSource<bool> OnNextTapped;
@@ -26,36 +32,51 @@ namespace Zebble
         View EventBlocker;
         PopOver PopOver;
 
+        public readonly AsyncEvent NextButtonTapped = new AsyncEvent();
+        public readonly AsyncEvent SkipButtonTapped = new AsyncEvent();
+        public readonly AsyncEvent BackButtonTapped = new AsyncEvent();
+
         public CoachMarksSettings Settings { get; }
 
-        public bool IsCoaching => Background != null;
+        public bool IsCoaching;
 
         public CoachMarks() : this(new CoachMarksSettings()) { }
 
-        public CoachMarks(CoachMarksSettings settings) => Settings = settings;
-
-        public Step CreateStep(string text, string elementId)
+        public CoachMarks(CoachMarksSettings settings)
         {
-            var result = new Step(elementId)
-            {
-                Text = text
-            };
+            Settings = settings;
 
-            stepsList.Add(result);
+            Overlay = new Canvas { CssClass = "coach-marks-background" };
 
-            return result;
+            // Buttons
+            NextButton = new Button { Text = "Next", CssClass = "next" }
+                .On(x => x.Tapped, () => NextButtonTapped.Raise());
+
+            SkipButton = new Button { Text = "Skip", CssClass = "skip" }
+                .On(x => x.Tapped, () => SkipButtonTapped.Raise());
+
+            BackButton = new Button { Text = "Back", CssClass = "back" }
+                .On(x => x.Tapped, () => BackButtonTapped.Raise());
+
+            // Buttons stacks
+            TopButtons = new Stack { CssClass = "coach-marks-buttons top" };
+            BottomButtons = new Stack { CssClass = "coach-marks-buttons bottom" };
         }
 
-        public Step CreateStep(string text, View element)
+        public void CreateStep(string text, string elementId)
         {
-            var result = new Step(element)
+            stepsList.Add(new Step(elementId)
             {
                 Text = text
-            };
+            });
+        }
 
-            stepsList.Add(result);
-
-            return result;
+        public void CreateStep(string text, View element)
+        {
+            stepsList.Add(new Step(element)
+            {
+                Text = text
+            });
         }
 
         public Task Show() => Show(CancellationToken.None);
@@ -71,7 +92,7 @@ namespace Zebble
             try
             {
                 // Create and show background which contains the next and skip button
-                await ShowBackground(cancellationToken);
+                await AddButtons(cancellationToken);
 
                 for (Index = 0; Index < stepsList.Count; Index++)
                 {
@@ -100,9 +121,7 @@ namespace Zebble
             }
             finally
             {
-                await Task.WhenAll(
-                    RemoveBackground(),
-                    HideStep());
+                await Task.WhenAll(RemoveButtons(), HideStep());
             }
         }
 
@@ -114,25 +133,19 @@ namespace Zebble
 
         void FixButtonsConditions()
         {
-            Background.BackButtonVisible = Index > 0;
-            Background.NextButtonText = stepsList.Count - 1 == Index ? "Finish" : "Next";
+            BackButton.Visible = Index > 0;
+            NextButton.Text = stepsList.Count - 1 == Index ? "Finish" : "Next";
         }
 
         bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
-
+        
         async Task HideStep()
         {
-            await Task.WhenAll(
-                ShrinkTheHolder(),
-                PopOver.Hide());
+            await Task.WhenAll(ShrinkTheHolder(), PopOver.Hide());
 
             await ChangeParent(Element, ElementParent, Element.ActualY, Element.ActualX);
 
-            await Task.WhenAll(
-                ElementHolder.RemoveSelf(),
-                ElementInnerHolder.RemoveSelf(),
-                EventBlocker.RemoveSelf()
-                );
+            await Task.WhenAll(ElementHolder.RemoveSelf(), ElementInnerHolder.RemoveSelf(), EventBlocker.RemoveSelf());
         }
 
         async Task ShowStep(Step step)
@@ -146,11 +159,7 @@ namespace Zebble
             await CreateHolder();            
             await ChangeParent(Element, ElementInnerHolder);
 
-            await Task.WhenAll(
-                ExpandHolder(),
-                showPopOver()
-                );
-
+            await Task.WhenAll(ExpandHolder(), showPopOver());
 
             OnPopOverClosed = new TaskCompletionSource<bool>();
             OnNextTapped = new TaskCompletionSource<bool>();
@@ -168,18 +177,18 @@ namespace Zebble
         
         async Task CreateHolder() {
             // Adding the ElementHolder
-            await View.Root.Add(ElementHolder = GetCanvasForElement(Settings.ElementPadding));
+            await Root.Add(ElementHolder = GetCanvasForElement(Settings.ElementPadding));
             ElementHolder.BackgroundColor = Colors.White;
             ElementHolder.Opacity(0);
 
-            await View.Root.Add(ElementInnerHolder = GetCanvasForElement());
+            await Root.Add(ElementInnerHolder = GetCanvasForElement());
             
             await ElementHolder.BringToFront();
             await ElementInnerHolder.BringToFront();
 
             if(Settings.DisableRealEvents)
             {
-                await View.Root.Add(EventBlocker = GetCanvasForElement());
+                await Root.Add(EventBlocker = GetCanvasForElement());
                 await EventBlocker.BringToFront();
             }
         }
@@ -210,7 +219,6 @@ namespace Zebble
         {
             Func<float, float> getScale = a => (a + Settings.ElementPadding * 2) / a;
 
-            //ElementHolder.Opacity = 1;
             await ElementHolder.Animate(new Animation
             {
                 Easing = AnimationEasing.EaseIn,
@@ -240,20 +248,20 @@ namespace Zebble
             });
         }
 
-        async Task RemoveBackground()
-        {
-            await Background.RemoveSelf();
-            Background = null;
-        }
-
-        async Task ShowBackground(CancellationToken cancellationToken)
+        async Task AddButtons(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested) return;
 
-            Background = new BackgroundControl(Settings);
+            IsCoaching = true;
 
-            Background
-                .On(x => x.NextButtonTapped, () => OnNextTapped?.TrySetResult(result: true))
+            await Add(Overlay);
+            await Add(TopButtons);
+            await Add(BottomButtons);
+
+            await AddButtons(TopButtons, Settings.TopButtons);
+            await AddButtons(BottomButtons, Settings.BottomButtons);
+
+            this.On(x => x.NextButtonTapped, () => OnNextTapped?.TrySetResult(result: true))
                 .On(x => x.SkipButtonTapped, () => Hide())
                 .On(x => x.BackButtonTapped, () =>
                 {
@@ -261,9 +269,32 @@ namespace Zebble
                     OnBackTapped?.TrySetResult(result: true);
                 });
 
-            await View.Root.Add(Background);
-            await Background.BringToFront();
-            await View.Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Visible = false });
+            await Root.Add(this);
+            await BringToFront();
+            await Root.Add(ElementHolder = new Canvas { BackgroundColor = Colors.White, Visible = false });
+        }
+
+        async Task AddButtons(Stack stack, CoachMarksSettings.Buttons buttons)
+        {
+            bool Has(CoachMarksSettings.Buttons b) => (buttons & b) == b;
+
+            if (Has(CoachMarksSettings.Buttons.Skip))
+                await stack.Add(SkipButton);
+
+            if (Has(CoachMarksSettings.Buttons.Back))
+                await stack.Add(BackButton);
+
+            if (Has(CoachMarksSettings.Buttons.Next))
+                await stack.Add(NextButton);
+        }
+
+        async Task RemoveButtons()
+        {
+            await Remove(Overlay);
+            await Remove(TopButtons);
+            await Remove(BottomButtons);
+
+            IsCoaching = false;
         }
     }
 }
