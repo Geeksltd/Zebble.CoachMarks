@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using controls = Windows.UI.Xaml.Controls;
 using xaml = Windows.UI.Xaml;
@@ -14,7 +11,7 @@ namespace Zebble
         {
             RemoveParent(view.Native());
 
-            AddToNativeParent(newParent, view.Native() as xaml.UIElement, top, left);
+            AddToNativeParent(newParent, view.Native(), top, left);
         }
 
         void RemoveParent(xaml.FrameworkElement native)

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Zebble
@@ -51,7 +49,7 @@ namespace Zebble
                 .On(x => x.Tapped, () => BackButtonTapped.Raise());
 
 
-            // Buttons` stacks
+            // Buttons stacks
             TopButtons = new Stack { CssClass = "coach-marks-buttons top" };
             BottomButtons = new Stack { CssClass = "coach-marks-buttons bottom" };
         }
