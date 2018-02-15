@@ -60,7 +60,7 @@ namespace Zebble
             try
             {
                 // Create and show background which contains the next and skip button
-                await ShowBackround(cancellationToken);
+                await ShowBackground(cancellationToken);
 
                 for (Index = 0; Index < stepsList.Count; Index++)
                 {
@@ -235,7 +235,7 @@ namespace Zebble
             Background = null;
         }
 
-        async Task ShowBackround(CancellationToken cancellationToken)
+        async Task ShowBackground(CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested) return;
 
