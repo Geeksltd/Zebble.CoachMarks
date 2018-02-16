@@ -48,27 +48,18 @@ coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
 coach.CreateStep("You could find more feature here.", "MenuButton");
 
-await Thread.UI.Run(() => coach.Show());
+awaitcoach.Show();
 ```
-As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is going out.
+As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is happening especialy in UI thread.
 ```csharp
-var coach = new CoachMarks();
-
-coach.Settings.MoveOnByTime = true;
-coach.Settings.Delay = TimeSpan.FromSeconds(2);
-
-coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
-
-await Thread.UI.Run(() => coach.Show());
+coach.Show().RunInParallel();
 ```
-
-The `Show` method should be called in the UI thread so you can call it like `await Thread.UI.Run(() => coach.Show());`.
 
 <br>
 
 ### Setting
 
-| Property          | Type              | decvription |
+| Property          | Type              | description |
 | :-----------      | :-----------      | :------ |
 | MoveOnByTime      | bool              | It is used for moving on the steps when the specific time passes. |
 | Delay             | TimeSpan          | The specific time for the MoveOnByTime.          |

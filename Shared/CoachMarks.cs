@@ -74,7 +74,10 @@ namespace Zebble
 
         public Task Show() => Show(CancellationToken.None);
 
-        public async Task Show(CancellationToken cancellationToken)
+        public Task Show(CancellationToken cancellationToken) =>
+            Thread.UI.Run(() => DoShow(cancellationToken));
+
+        async Task DoShow(CancellationToken cancellationToken)
         {
             if (IsCoaching)
                 throw new InvalidOperationException("Coaching is under process.");
@@ -119,7 +122,9 @@ namespace Zebble
             }
         }
 
-        public void Hide()
+        public Task Hide() => Thread.UI.Run(() => DoHide());
+
+        void DoHide()
         {
             SkipTapped = true;
             OnSkipTapped?.TrySetResult(result: true);
