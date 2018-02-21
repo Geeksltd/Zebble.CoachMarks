@@ -9,6 +9,13 @@
     <Import_RootNamespace>Zebble</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ElementHolder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Overlay.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SkipButton.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BackButton.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NextButton.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)BottomButtonContainer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TopButtonContainer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CoachMarks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CurrentStep.cs" />

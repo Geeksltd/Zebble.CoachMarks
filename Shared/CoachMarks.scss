@@ -1,11 +1,7 @@
 ﻿
 @mixin coach-marks($navbar-height) {
-    .coach-marks- {
-        &element-holder {
-            background-color: white;
-        }
-
-        &background {
+    CoachMarks {
+        CoachMarksOverlay {
             position: absolute;
             background-color: #121212;
             opacity: 0.4;
@@ -15,35 +11,34 @@
             width: 100vw;
         }
 
-        &buttons {
-            &.top {
-                @if $navbar-height == 60 {
-                    margin-top: 15px;
-                }
-                @else {
-                    margin-top: 0;
-                }
+        ElementHolder {
+            background-color: white;
+        }
+
+        TopButtonContainer, BottomButtonContainer {
+            Direction: calc("RepeatDirection.Horizontal");
+        }
+
+        TopButtonContainer {
+            @if $navbar-height == 60 {
+                margin-top: 15px;
             }
-
-            &.bottom {
-                position: absolute;
-                height: 45px;
-                top: calc("View.Root.Height, view.Height, (r, b) => r - b");
-            }
-
-            Button {
-                height: 45px;
-                color: white;
-
-                &.back {
-                    background-color: white;
-                    color: black;
-                }
+            @else {
+                margin-top: 0;
             }
         }
-    }
 
-    Stack.coach-marks-buttons {
-        Direction: calc("RepeatDirection.Horizontal");
+        BottomButtonContainer {
+            position: absolute;
+            height: 45px;
+            top: calc("View.Root.Height, view.Height, (r, b) => r - b");
+        }
+
+        BackButton, SkipButton, NextButton {
+            height: 45px;
+            border: 1px;
+            background-color: white;
+            color: black;
+        }
     }
 }

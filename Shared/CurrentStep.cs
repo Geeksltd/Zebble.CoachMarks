@@ -74,7 +74,11 @@ namespace Zebble
 
         Canvas GetCanvasForElement(int radiusMax = 0)
         {
-            var result = new Canvas { CssClass = "coach-marks-element-holder".OnlyWhen(radiusMax > 0) };
+            Canvas result;
+            if (radiusMax > 0)
+                result = new ElementHolder();
+            else
+                result = new Canvas();
 
             result.X(Element.CalculateAbsoluteX());
             result.Y(Element.CalculateAbsoluteY());

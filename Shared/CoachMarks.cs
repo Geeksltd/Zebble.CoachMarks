@@ -12,12 +12,12 @@ namespace Zebble
         bool SkipTapped;
         int Index;
 
-        Canvas Overlay;
-        Stack TopButtons;
-        Stack BottomButtons;
-        Button NextButton;
-        Button SkipButton;
-        Button BackButton;
+        CoachMarksOverlay Overlay;
+        TopButtonContainer TopButtons;
+        BottomButtonContainer BottomButtons;
+        NextButton NextButton;
+        SkipButton SkipButton;
+        BackButton BackButton;
 
         CurrentStep CurrentStep;
 
@@ -39,21 +39,16 @@ namespace Zebble
         {
             Settings = settings;
 
-            Overlay = new Canvas { CssClass = "coach-marks-background" };
+            Overlay = new CoachMarksOverlay();
 
             // Buttons
-            NextButton = new Button { Text = "Next", CssClass = "next" }
-                .On(x => x.Tapped, () => NextButtonTapped.Raise());
-
-            SkipButton = new Button { Text = "Skip", CssClass = "skip" }
-                .On(x => x.Tapped, () => SkipButtonTapped.Raise());
-
-            BackButton = new Button { Text = "Back", CssClass = "back" }
-                .On(x => x.Tapped, () => BackButtonTapped.Raise());
+            NextButton = new NextButton(NextButtonTapped);
+            SkipButton = new SkipButton(SkipButtonTapped);
+            BackButton = new BackButton(BackButtonTapped);
 
             // Buttons stacks
-            TopButtons = new Stack { CssClass = "coach-marks-buttons top" };
-            BottomButtons = new Stack { CssClass = "coach-marks-buttons bottom" };
+            TopButtons = new TopButtonContainer();
+            BottomButtons = new BottomButtonContainer();
         }
 
         public void CreateStep(string text, string elementId)
