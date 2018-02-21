@@ -48,7 +48,7 @@ coach.CreateStep("Tap this button to skip this part.", SkipButton.Id);
 coach.CreateStep("When you are not 100% sure tap this button.", NotSureButton.Id);
 coach.CreateStep("You could find more feature here.", "MenuButton");
 
-awaitcoach.Show();
+await coach.Show();
 ```
 As the coaching would take time, it would be a good idea to call the Coach method without using await keyword when something is happening especialy in UI thread.
 ```csharp
