@@ -2,21 +2,24 @@
 
 namespace Zebble
 {
-    public class BackButton : Button
+    partial class CoachMarks
     {
-        readonly AsyncEvent buttonTapped;
-
-        public BackButton(AsyncEvent buttonTapped)
+        public class BackButton : Button
         {
-            this.buttonTapped = buttonTapped;
-        }
+            readonly AsyncEvent buttonTapped;
 
-        public override async Task OnInitializing()
-        {
-            await base.OnInitializing();
+            public BackButton(AsyncEvent buttonTapped)
+            {
+                this.buttonTapped = buttonTapped;
+            }
 
-            Text = "Back";
-            Tapped.Handle(() => buttonTapped.Raise());
+            public override async Task OnInitializing()
+            {
+                await base.OnInitializing();
+
+                Text = "Back";
+                Tapped.Handle(() => buttonTapped.Raise());
+            }
         }
     }
 }

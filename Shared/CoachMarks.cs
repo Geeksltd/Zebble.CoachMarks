@@ -15,9 +15,9 @@ namespace Zebble
         CoachMarksOverlay Overlay;
         TopButtonContainer TopButtons;
         BottomButtonContainer BottomButtons;
-        NextButton NextButton;
-        SkipButton SkipButton;
-        BackButton BackButton;
+        NextButton Next;
+        SkipButton Skip;
+        BackButton Back;
 
         CurrentStep CurrentStep;
 
@@ -42,9 +42,9 @@ namespace Zebble
             Overlay = new CoachMarksOverlay();
 
             // Buttons
-            NextButton = new NextButton(NextButtonTapped);
-            SkipButton = new SkipButton(SkipButtonTapped);
-            BackButton = new BackButton(BackButtonTapped);
+            Next = new NextButton(NextButtonTapped);
+            Skip = new SkipButton(SkipButtonTapped);
+            Back = new BackButton(BackButtonTapped);
 
             // Buttons stacks
             TopButtons = new TopButtonContainer();
@@ -127,8 +127,8 @@ namespace Zebble
 
         void FixButtonsConditions()
         {
-            BackButton.Visible = Index > 0;
-            NextButton.Text = stepsList.Count - 1 == Index ? "Finish" : "Next";
+            Back.Visible = Index > 0;
+            Next.Text = stepsList.Count - 1 == Index ? "Finish" : "Next";
         }
 
         bool ShouldItTerminate() => CancellationToken.IsCancellationRequested || SkipTapped;
@@ -181,13 +181,13 @@ namespace Zebble
         async Task AddButtons(Stack stack, CoachMarksSettings.Buttons buttons)
         {
             if (buttons.HasFlag(CoachMarksSettings.Buttons.Skip))
-                await stack.Add(SkipButton);
+                await stack.Add(Skip);
 
             if (buttons.HasFlag(CoachMarksSettings.Buttons.Back))
-                await stack.Add(BackButton);
+                await stack.Add(Back);
 
             if (buttons.HasFlag(CoachMarksSettings.Buttons.Next))
-                await stack.Add(NextButton);
+                await stack.Add(Next);
         }
 
         async Task RemoveButtons()

@@ -1,44 +1,42 @@
 ﻿
 @mixin coach-marks($navbar-height) {
-    CoachMarks {
-        CoachMarksOverlay {
-            position: absolute;
-            background-color: #121212;
-            opacity: 0.4;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 100vw;
-        }
+    CoachMarks-CoachMarksOverlay {
+        position: absolute;
+        background-color: #121212;
+        opacity: 0.4;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+    }
 
-        ElementHolder {
-            background-color: white;
-        }
+    CoachMarks-ElementHolder {
+        background-color: white;
+    }
 
-        TopButtonContainer, BottomButtonContainer {
-            Direction: calc("RepeatDirection.Horizontal");
-        }
+    CoachMarks-TopButtonContainer, CoachMarks-BottomButtonContainer {
+        Direction: calc("RepeatDirection.Horizontal");
+    }
 
-        TopButtonContainer {
-            @if $navbar-height == 60 {
-                margin-top: 15px;
-            }
-            @else {
-                margin-top: 0;
-            }
+    CoachMarks-TopButtonContainer {
+        @if $navbar-height == 60 {
+            margin-top: 15px;
         }
+        @else {
+            margin-top: 0;
+        }
+    }
 
-        BottomButtonContainer {
-            position: absolute;
-            height: 45px;
-            top: calc("View.Root.Height, view.Height, (r, b) => r - b");
-        }
+    CoachMarks-BottomButtonContainer {
+        position: absolute;
+        height: 45px;
+        top: calc("View.Root.Height, view.Height, (r, b) => r - b");
+    }
 
-        BackButton, SkipButton, NextButton {
-            height: 45px;
-            border: 1px;
-            background-color: white;
-            color: black;
-        }
+    CoachMarks-BackButton, CoachMarks-SkipButton, CoachMarks-NextButton {
+        height: 45px;
+        border: 1px;
+        background-color: white;
+        color: black;
     }
 }

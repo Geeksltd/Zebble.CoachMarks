@@ -2,21 +2,24 @@
 
 namespace Zebble
 {
-    public class SkipButton : Button
+    partial class CoachMarks
     {
-        readonly AsyncEvent buttonTapped;
-
-        public SkipButton(AsyncEvent buttonTapped)
+        public class SkipButton : Button
         {
-            this.buttonTapped = buttonTapped;
-        }
+            readonly AsyncEvent buttonTapped;
 
-        public override async Task OnInitializing()
-        {
-            await base.OnInitializing();
+            public SkipButton(AsyncEvent buttonTapped)
+            {
+                this.buttonTapped = buttonTapped;
+            }
 
-            Text = "Skip";
-            Tapped.Handle(() => buttonTapped.Raise());
+            public override async Task OnInitializing()
+            {
+                await base.OnInitializing();
+
+                Text = "Skip";
+                Tapped.Handle(() => buttonTapped.Raise());
+            }
         }
     }
 }

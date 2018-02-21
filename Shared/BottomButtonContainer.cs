@@ -1,6 +1,9 @@
 ﻿namespace Zebble
 {
-    public class BottomButtonContainer : Stack
-    {
+    partial class CoachMarks
+    { 
+        public class BottomButtonContainer : Stack
+        {
+        }
     }
 }

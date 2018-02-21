@@ -76,7 +76,7 @@ namespace Zebble
         {
             Canvas result;
             if (radiusMax > 0)
-                result = new ElementHolder();
+                result = new CoachMarks.ElementHolder();
             else
                 result = new Canvas();
 

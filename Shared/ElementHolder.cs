@@ -1,6 +1,9 @@
 ﻿namespace Zebble
 {
-    public class ElementHolder : Canvas
+    partial class CoachMarks
     {
+        public class ElementHolder : Canvas
+        {
+        }
     }
 }

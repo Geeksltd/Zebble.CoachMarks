@@ -1,6 +1,9 @@
 ﻿namespace Zebble
 {
-    public class CoachMarksOverlay : Canvas
+    partial class CoachMarks
     {
+        public class CoachMarksOverlay : Canvas
+        {
+        }
     }
 }
