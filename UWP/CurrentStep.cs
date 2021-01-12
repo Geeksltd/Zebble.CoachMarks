@@ -21,7 +21,7 @@ namespace Zebble
             if (parent is controls.Panel panel)
                 panel.Children.Remove(native);
             else
-                Log.For(this).Error(null, $"The item is not removed., type: {parent.GetType()}");
+                Log.For(this).Error($"The item is not removed., type: {parent.GetType()}");
         }
 
         void AddToNativeParent(View parent, xaml.UIElement nativeChild, float top, float left)
